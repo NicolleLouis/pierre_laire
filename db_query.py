@@ -60,5 +60,5 @@ sqlite_print_table = '''
 '''
 
 sqlite_drop_table = '''
-    DROP TABLE professionals
+    DROP TABLE professionals;
 '''
