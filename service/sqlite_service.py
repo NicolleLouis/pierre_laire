@@ -10,7 +10,7 @@ class SQLiteService:
         return sqliteConnection, cursor
 
     @staticmethod
-    def close_sqlite(sqliteConnection, cursor):
+    def close_sqlite(sqlite_connection, cursor):
         cursor.close()
-        sqliteConnection.close()
+        sqlite_connection.close()
         print("The SQLite connection is closed")

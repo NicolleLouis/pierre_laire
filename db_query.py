@@ -1,5 +1,5 @@
 sqlite_create_table_query = '''
-    CREATE TABLE professionals(
+    CREATE TABLE {database_name} (
         Type_d_identifiant_PP text not null,
         Identifiant_PP text PRIMARY KEY,
         Identification_nationale_PP text not null,
@@ -55,16 +55,12 @@ sqlite_create_table_query = '''
     );
 '''
 
-sqlite_print_table = '''
-    SELECT * FROM professionals;
-'''
-
 sqlite_drop_table = '''
-    DROP TABLE professionals;
+    DROP TABLE {database_name};
 '''
 
 sqlite_insert_line = '''
-    INSERT INTO professionals (
+    INSERT INTO {database_name} (
         Type_d_identifiant_PP,
         Identifiant_PP,
         Identification_nationale_PP,
@@ -172,4 +168,8 @@ sqlite_insert_line = '''
         {},
         {}
     );
+'''
+
+sqlite_get_line_by_id = '''
+    SELECT * FROM professionals WHERE Identifiant_PP is {}
 '''

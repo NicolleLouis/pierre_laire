@@ -1,6 +1,3 @@
-from db_query import sqlite_insert_line
-
-
 class FileReaderService:
     @staticmethod
     def read_line(line):
@@ -9,7 +6,11 @@ class FileReaderService:
         return values
 
     @staticmethod
-    def insert_line_in_db(sqliteConnection, cursor, line):
-        sqlite_insert = sqlite_insert_line.format(*FileReaderService.read_line(line))
-        cursor.execute(sqlite_insert)
-        sqliteConnection.commit()
+    def get_professional_id(line):
+        return FileReaderService.read_line(line)[1]
+
+    @staticmethod
+    def get_code_mode_exercice(line):
+        code_mode_exercice = FileReaderService.read_line(line)[17]
+        return code_mode_exercice.replace("\"", "")
+
