@@ -1,2 +1,4 @@
 docs/
 .idea/
+__pycache__/
+sqlite.db
