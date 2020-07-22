@@ -9,7 +9,7 @@ from service.database_service import DatabaseService
 
 def delete_duplicate_hier_aujourdhui(cursor):
     # Look at hier file line by line and check differences
-    file = open(FileService.get_hier_file_path(), 'r')
+    file = open(FileService.get_hier_file_path(), 'r', encoding="utf-8")
 
     lines = file.readlines()[1:]
     for line in lines:
@@ -36,10 +36,14 @@ def delete_duplicate_hier_aujourdhui(cursor):
 
 
 def insert_aujourdhui_in_sqlite():
-    file = open(FileService.get_aujourdhui_file_path(), 'r')
+    file = open(FileService.get_aujourdhui_file_path(), 'r', encoding="utf-8")
 
     lines = file.readlines()[1:]
+    number_of_lines_analysed = 0
     for line in lines:
+        number_of_lines_analysed += 1
+        if number_of_lines_analysed % 1000 == 0:
+            print("<-- Lines analysed: {} -->".format(number_of_lines_analysed))
         try:
             DatabaseService.insert_line_in_db(
                 sqlite_connection=sqlite_connection,
@@ -88,6 +92,7 @@ sqlite_connection, cursor = SQLiteService.open_sqlite()
 DatabaseService.create_all_tables(cursor)
 
 insert_aujourdhui_in_sqlite()
+print("## Today file saved in db -> Start of yesterday comparison ##")
 delete_duplicate_hier_aujourdhui(cursor=cursor)
 
 save_result_in_csv()
