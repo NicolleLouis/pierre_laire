@@ -1,9 +1,38 @@
+import csv
 import time
 
 from service.sqlite_service import SQLiteService
 from service.files_service import FileService
 from service.file_reader_service import FileReaderService
 from service.database_service import DatabaseService
+
+
+def delete_duplicate_hier_aujourdhui(cursor):
+    # Look at hier file line by line and check differences
+    file = open(FileService.get_hier_file_path(), 'r')
+
+    lines = file.readlines()[1:]
+    for line in lines:
+        professional_id = FileReaderService.get_professional_id(line)
+        code_mode_exercice_1 = FileReaderService.get_code_mode_exercice(line)
+        aujourdhui_record = DatabaseService.get_professional_by_id(
+            professional_id=professional_id,
+            cursor=cursor
+        )
+        if aujourdhui_record is not None:
+            # Detect new liberals/old liberals
+            code_mode_exercice_2 = aujourdhui_record[17]
+            if code_mode_exercice_2 != code_mode_exercice_1:
+                if code_mode_exercice_1 == "L" or code_mode_exercice_2 == "L":
+                    # checked manually -> removed for optimization
+                    # Check line already is in new_liberals and add if needed
+                    pass
+            # Remove aujourdhui record since it's not new
+            DatabaseService.delete_instance_by_professional_id_in_aujourdhui_db(
+                cursor=cursor,
+                professional_id=professional_id
+            )
+    sqlite_connection.commit()
 
 
 def insert_aujourdhui_in_sqlite():
@@ -39,6 +68,18 @@ def insert_aujourdhui_in_sqlite():
                         pass
 
 
+def save_result_in_csv():
+    cursor.execute("SELECT * FROM new_liberals")
+    open("docs/new_liberals.csv", "w").close()
+    with open("docs/new_liberals.csv", "w") as new_liberals_file:
+        csv_writer = csv.writer(new_liberals_file, delimiter="|")
+        csv_writer.writerows(cursor)
+    cursor.execute("SELECT * FROM professionals")
+    open("docs/new_liberals.csv", "w").close()
+    with open("docs/professionals.csv", "w") as professionals_file:
+        csv_writer = csv.writer(professionals_file, delimiter="|")
+        csv_writer.writerows(cursor)
+
 # Time analysis
 start_time = time.time()
 
@@ -46,43 +87,13 @@ start_time = time.time()
 sqlite_connection, cursor = SQLiteService.open_sqlite()
 DatabaseService.create_all_tables(cursor)
 
-# todo uncomment this at the end of project
-# insert_aujourdhui_in_sqlite()
+insert_aujourdhui_in_sqlite()
+delete_duplicate_hier_aujourdhui(cursor=cursor)
 
-# Look at hier file line by line and check differences
-removed = 0
-file = open(FileService.get_hier_file_path(), 'r')
-
-lines = file.readlines()[1:]
-for line in lines:
-    professional_id = FileReaderService.get_professional_id(line)
-    code_mode_exercice_1 = FileReaderService.get_code_mode_exercice(line)
-    aujourdhui_record = DatabaseService.get_professional_by_id(
-        professional_id=professional_id,
-        cursor=cursor
-    )
-    if aujourdhui_record is not None:
-        # Detect new liberals/old liberals
-        code_mode_exercice_2 = aujourdhui_record[17]
-        if code_mode_exercice_2 != code_mode_exercice_1:
-            if code_mode_exercice_1 == "L" or code_mode_exercice_2 == "L":
-                # checked manually -> removed for optimization
-                # Check line already is in new_liberals and add if needed
-                pass
-        # Remove aujourdhui record since it's not new
-        DatabaseService.delete_instance_by_professional_id_in_aujourdhui_db(
-            cursor=cursor,
-            professional_id=professional_id
-        )
-        removed += 1
-        if removed % 100 == 0:
-            print("<--- Removed: {} --->".format(removed))
-
-sqlite_connection.commit()
+save_result_in_csv()
 
 # Delete table for next execution
-# todo uncomment this at the end of the project
-# DatabaseService.delete_all_tables(cursor)
+DatabaseService.delete_all_tables(cursor)
 SQLiteService.close_sqlite(sqlite_connection, cursor)
 
 # Time analysis
