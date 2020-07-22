@@ -173,3 +173,7 @@ sqlite_insert_line = '''
 sqlite_get_line_by_id = '''
     SELECT * FROM professionals WHERE Identifiant_PP is {}
 '''
+
+sqlite_delete_by_id = '''
+    DELETE FROM professionals WHERE Identifiant_PP is {}
+'''

@@ -49,7 +49,8 @@ DatabaseService.create_all_tables(cursor)
 # todo uncomment this at the end of project
 # insert_aujourdhui_in_sqlite()
 
-# Look at hier file line by line and check distinction
+# Look at hier file line by line and check differences
+removed = 0
 file = open(FileService.get_hier_file_path(), 'r')
 
 lines = file.readlines()[1:]
@@ -68,6 +69,16 @@ for line in lines:
                 # checked manually -> removed for optimization
                 # Check line already is in new_liberals and add if needed
                 pass
+        # Remove aujourdhui record since it's not new
+        DatabaseService.delete_instance_by_professional_id_in_aujourdhui_db(
+            cursor=cursor,
+            professional_id=professional_id
+        )
+        removed += 1
+        if removed % 100 == 0:
+            print("<--- Removed: {} --->".format(removed))
+
+sqlite_connection.commit()
 
 # Delete table for next execution
 # todo uncomment this at the end of the project
