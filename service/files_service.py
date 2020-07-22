@@ -12,3 +12,9 @@ class FileService:
         scrap_dir_name = "../docs/aujourdhui.txt"
         scrap_dir_path = os.path.join(FileService.get_abs_dirname(), scrap_dir_name)
         return scrap_dir_path
+
+    @staticmethod
+    def get_hier_file_path():
+        scrap_dir_name = "../docs/hier.txt"
+        scrap_dir_path = os.path.join(FileService.get_abs_dirname(), scrap_dir_name)
+        return scrap_dir_path

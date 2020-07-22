@@ -12,5 +12,7 @@ class FileReaderService:
     @staticmethod
     def get_code_mode_exercice(line):
         code_mode_exercice = FileReaderService.read_line(line)[17]
-        return code_mode_exercice.replace("\"", "")
-
+        code_mode_exercice = code_mode_exercice.replace("\"", "")
+        if code_mode_exercice == "NULL":
+            return None
+        return code_mode_exercice
