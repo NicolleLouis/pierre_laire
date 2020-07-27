@@ -11,6 +11,8 @@ def delete_duplicate_hier_aujourdhui(cursor):
     # Look at hier file line by line and check differences
     file = open(FileService.get_hier_file_path(), 'r', encoding="utf-8")
 
+    new_liberals_hier = 0
+
     lines = file.readlines()[1:]
     for line in lines:
         professional_id = FileReaderService.get_professional_id(line)
@@ -24,9 +26,30 @@ def delete_duplicate_hier_aujourdhui(cursor):
             code_mode_exercice_2 = aujourdhui_record[17]
             if code_mode_exercice_2 != code_mode_exercice_1:
                 if code_mode_exercice_1 == "L" or code_mode_exercice_2 == "L":
-                    # checked manually -> removed for optimization
-                    # Check line already is in new_liberals and add if needed
-                    pass
+                    new_liberals_hier += 1
+                    if new_liberals_hier % 100 == 0:
+                        print("<-- New liberals hier: {} -->".format(new_liberals_hier))
+                    # Used to save the line with L instead of any line
+                    if code_mode_exercice_2 == "L":
+                        line = FileReaderService.convert_instance_to_line(aujourdhui_record)
+                    try:
+                        DatabaseService.insert_line_in_db(
+                            sqlite_connection=sqlite_connection,
+                            cursor=cursor,
+                            line=line,
+                            database_name="new_liberals"
+                        )
+                    except Exception as e:
+                        pass
+                    try:
+                        DatabaseService.insert_line_in_db(
+                            sqlite_connection=sqlite_connection,
+                            cursor=cursor,
+                            line=line,
+                            database_name="liberals_hier_and_aujourdhui"
+                        )
+                    except Exception as e:
+                        pass
             # Remove aujourdhui record since it's not new
             DatabaseService.delete_instance_by_professional_id_in_aujourdhui_db(
                 cursor=cursor,
@@ -60,7 +83,7 @@ def insert_aujourdhui_in_sqlite():
             code_mode_exercice_1 = FileReaderService.get_code_mode_exercice(line)
             code_mode_exercice_2 = error_record[17]
             if code_mode_exercice_2 != code_mode_exercice_1:
-                if code_mode_exercice_1 == "L" or code_mode_exercice_2 == "L":
+                if code_mode_exercice_1 == "L":
                     try:
                         DatabaseService.insert_line_in_db(
                             sqlite_connection=sqlite_connection,
@@ -70,19 +93,38 @@ def insert_aujourdhui_in_sqlite():
                         )
                     except Exception as e:
                         pass
+                if code_mode_exercice_2 == "L":
+                    record_as_line = FileReaderService.convert_instance_to_line(error_record)
+                    try:
+                        DatabaseService.insert_line_in_db(
+                            sqlite_connection=sqlite_connection,
+                            cursor=cursor,
+                            line=record_as_line,
+                            database_name="new_liberals"
+                        )
+                    except Exception as e:
+                        # print("<-- Exception: {} -->".format(e))
+                        print("Line in reverse order")
+                        pass
 
 
 def save_result_in_csv():
     cursor.execute("SELECT * FROM new_liberals")
-    open("docs/new_liberals.csv", "w").close()
-    with open("docs/new_liberals.csv", "w") as new_liberals_file:
+    open("docs/new_liberals_2_ligne.csv", "w").close()
+    with open("docs/new_liberals_2_ligne.csv", "w") as new_liberals_file:
         csv_writer = csv.writer(new_liberals_file, delimiter="|")
         csv_writer.writerows(cursor)
     cursor.execute("SELECT * FROM professionals")
-    open("docs/new_liberals.csv", "w").close()
-    with open("docs/professionals.csv", "w") as professionals_file:
+    open("docs/new_professionals.csv", "w").close()
+    with open("docs/new_professionals.csv", "w") as professionals_file:
         csv_writer = csv.writer(professionals_file, delimiter="|")
         csv_writer.writerows(cursor)
+    cursor.execute("SELECT * FROM liberals_hier_and_aujourdhui")
+    open("docs/liberals_hier_aujourdhui.csv", "w").close()
+    with open("docs/liberals_hier_aujourdhui.csv", "w") as professionals_file:
+        csv_writer = csv.writer(professionals_file, delimiter="|")
+        csv_writer.writerows(cursor)
+
 
 # Time analysis
 start_time = time.time()
@@ -98,7 +140,7 @@ delete_duplicate_hier_aujourdhui(cursor=cursor)
 save_result_in_csv()
 
 # Delete table for next execution
-DatabaseService.delete_all_tables(cursor)
+# DatabaseService.delete_all_tables(cursor)
 SQLiteService.close_sqlite(sqlite_connection, cursor)
 
 # Time analysis

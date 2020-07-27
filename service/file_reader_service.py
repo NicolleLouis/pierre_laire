@@ -16,3 +16,8 @@ class FileReaderService:
         if code_mode_exercice == "NULL":
             return None
         return code_mode_exercice
+
+    @staticmethod
+    def convert_instance_to_line(instance):
+        instance = list(map(lambda field: field if field is not None else "", instance))
+        return "|".join(instance)

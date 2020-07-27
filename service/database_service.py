@@ -51,6 +51,10 @@ class DatabaseService:
             cursor.execute(sqlite_drop_table.format(database_name="new_liberals"))
         except Exception as e:
             pass
+        try:
+            cursor.execute(sqlite_drop_table.format(database_name="liberals_hier_and_aujourdhui"))
+        except Exception as e:
+            pass
 
     @staticmethod
     def create_all_tables(cursor):
@@ -62,3 +66,8 @@ class DatabaseService:
             cursor=cursor,
             database_name="new_liberals"
         )
+        DatabaseService.create_db(
+            cursor=cursor,
+            database_name="liberals_hier_and_aujourdhui"
+        )
+
